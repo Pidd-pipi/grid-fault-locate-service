@@ -1,0 +1,9 @@
+# 运行期数据
+data/
+*.tmp
+
+# 构建产物
+*.exe
+*.test
+*.out
+/bin/

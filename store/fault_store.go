@@ -45,6 +45,8 @@ func (s *Store) GetFault(id string) (*domain.FaultEvent, error) {
 
 // ListFaults 列出故障事件，可选按状态/线路过滤。
 func (s *Store) ListFaults(status domain.FaultStatus, feederID string) []*domain.FaultEvent {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	out := make([]*domain.FaultEvent, 0, len(s.faults))
 	for _, f := range s.faults {
 		if status != "" && f.Status != status {
@@ -71,6 +73,8 @@ func (s *Store) DeleteFault(id string) error {
 
 // ListActiveFaults 列出仍在处置中（located/repairing）的故障事件。
 func (s *Store) ListActiveFaults() []*domain.FaultEvent {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	out := make([]*domain.FaultEvent, 0, len(s.faults))
 	for _, f := range s.faults {
 		if f.Status.IsActive() {

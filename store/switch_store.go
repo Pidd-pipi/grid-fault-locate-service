@@ -45,6 +45,8 @@ func (s *Store) GetSwitch(id string) (*domain.SwitchNode, error) {
 
 // ListSwitches 列出开关节点，可选按线路过滤。
 func (s *Store) ListSwitches(feederID string) []*domain.SwitchNode {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	out := make([]*domain.SwitchNode, 0, len(s.switches))
 	for _, sw := range s.switches {
 		if feederID == "" || sw.FeederID == feederID {
@@ -67,6 +69,8 @@ func (s *Store) DeleteSwitch(id string) error {
 
 // CountSwitchesOfFeeder 统计线路的开关数量。
 func (s *Store) CountSwitchesOfFeeder(feederID string) int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	n := 0
 	for _, sw := range s.switches {
 		if sw.FeederID == feederID {

@@ -45,6 +45,8 @@ func (s *Store) GetIndicator(id string) (*domain.FaultIndicator, error) {
 
 // ListIndicators 列出指示器，可按线路/区段过滤。
 func (s *Store) ListIndicators(feederID, sectionID string) []*domain.FaultIndicator {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	out := make([]*domain.FaultIndicator, 0, len(s.indicators))
 	for _, ind := range s.indicators {
 		if feederID != "" && ind.FeederID != feederID {
@@ -71,6 +73,8 @@ func (s *Store) DeleteIndicator(id string) error {
 
 // CountTriggeredIndicators 统计翻牌指示器数量。
 func (s *Store) CountTriggeredIndicators() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	n := 0
 	for _, ind := range s.indicators {
 		if ind.IsTriggered() {

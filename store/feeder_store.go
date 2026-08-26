@@ -34,6 +34,8 @@ func (s *Store) UpdateFeeder(f *domain.Feeder) error {
 
 // GetFeeder 查询线路。
 func (s *Store) GetFeeder(id string) (*domain.Feeder, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	f, ok := s.feeders[id]
 	if !ok {
 		return nil, domain.NotFoundf("feeder %s not found", id)
@@ -43,6 +45,8 @@ func (s *Store) GetFeeder(id string) (*domain.Feeder, error) {
 
 // ListFeeders 列出全部线路。
 func (s *Store) ListFeeders() []*domain.Feeder {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	out := make([]*domain.Feeder, 0, len(s.feeders))
 	for _, f := range s.feeders {
 		out = append(out, f)

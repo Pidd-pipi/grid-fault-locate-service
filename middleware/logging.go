@@ -41,7 +41,7 @@ func RequestLog(next http.Handler) http.Handler {
 			"query", r.URL.RawQuery,
 			"status", rec.status,
 			"duration_ms", time.Since(start).Seconds()*1000,
-			"request_id", "",
+			"request_id", GetRequestID(r.Context()),
 			"remote_addr", r.RemoteAddr,
 		)
 	})

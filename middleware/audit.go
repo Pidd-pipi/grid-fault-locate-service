@@ -27,7 +27,7 @@ func Audit(audit AuditService, next http.Handler) http.Handler {
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rec, r)
 		detail := r.Method + " " + r.URL.Path + " -> " + http.StatusText(rec.status)
-		_ = audit.Record("", domain.AuditHTTPRequest, "http", r.URL.Path, "",
+		_ = audit.Record(GetRequestID(r.Context()), domain.AuditHTTPRequest, "http", r.URL.Path, "",
 			detail+" ("+time.Since(start).Round(time.Millisecond).String()+")")
 	})
 }

@@ -70,9 +70,8 @@ func NewFeederSection(id, feederID, name, up, down string, lengthKm float64, now
 
 // ---- 纯拓扑图工具函数（无存储依赖，便于单测） ----
 
-var orderScratch = make([]string, 0, 64)
-var neighborScratch = make([]string, 0, 16)
-var reachSeenScratch map[string]bool
+// 每个工具函数都自行分配切片/映射，返回独立的结果；不得使用包级
+// 共享的可变缓冲，否则并发拓扑查询/校验会互相覆盖导致串数据。
 
 // Edge 表示一条无向边（两端开关 ID）。
 type Edge [2]string
@@ -93,11 +92,7 @@ func BuildAdjacency(sections []*FeederSection) map[string][]string {
 // ReachableFrom 返回从起点出发，沿区段无向边可达的开关节点集合（含起点）。
 func ReachableFrom(sections []*FeederSection, start string) map[string]bool {
 	adj := BuildAdjacency(sections)
-	if reachSeenScratch == nil {
-		reachSeenScratch = map[string]bool{start: true}
-	}
-	seen := reachSeenScratch
-	seen[start] = true
+	seen := map[string]bool{start: true}
 	queue := []string{start}
 	for len(queue) > 0 {
 		cur := queue[0]
@@ -137,8 +132,7 @@ func DownstreamOrder(sections []*FeederSection, outletSwitchID string) []string 
 		byUp[sec.UpstreamSwitchID] = append(byUp[sec.UpstreamSwitchID], sec)
 	}
 	seen := make(map[string]bool)
-	orderScratch = orderScratch[:0]
-	order := orderScratch
+	order := make([]string, 0, len(sections))
 	var dfs func(switchID string)
 	dfs = func(switchID string) {
 		for _, sec := range byUp[switchID] {
@@ -174,8 +168,7 @@ func NeighborSectionIDs(sections []*FeederSection, sectionID string) []string {
 		return nil
 	}
 	eps := target.Endpoints()
-	neighborScratch = neighborScratch[:0]
-	neighbors := neighborScratch
+	neighbors := make([]string, 0, 4)
 	for _, sec := range sections {
 		if sec.ID == sectionID {
 			continue

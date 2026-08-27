@@ -4,8 +4,6 @@ import (
 	"example.com/grid-fault-locate-service/domain"
 )
 
-var sectionListScratch = make([]*domain.FeederSection, 0, 64)
-
 // CreateSection 新增线路区段。
 func (s *Store) CreateSection(sec *domain.FeederSection) error {
 	if sec.ID == "" {
@@ -46,16 +44,17 @@ func (s *Store) GetSection(id string) (*domain.FeederSection, error) {
 }
 
 // ListSections 列出区段，可选按线路过滤。
+// 每次调用返回独立的切片，避免并发请求共享底层数组导致串数据。
 func (s *Store) ListSections(feederID string) []*domain.FeederSection {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	sectionListScratch = sectionListScratch[:0]
+	out := make([]*domain.FeederSection, 0, len(s.sections))
 	for _, sec := range s.sections {
 		if feederID == "" || sec.FeederID == feederID {
-			sectionListScratch = append(sectionListScratch, sec)
+			out = append(out, sec)
 		}
 	}
-	return sectionListScratch
+	return out
 }
 
 // DeleteSection 删除区段（调用方需先校验拓扑连通性）。

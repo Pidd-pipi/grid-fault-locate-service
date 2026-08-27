@@ -60,14 +60,13 @@ func (s *OverviewService) GetOverview() Overview {
 
 	var longOutage []*domain.FaultEvent
 	for _, f := range activeFaults {
-		if !f.LongOutage {
+		if f.LongOutage {
 			longOutage = append(longOutage, f)
 		}
 	}
 
+	// 近期故障：按定位时间倒序取前 5 条（含处于处置中的活跃事件）。
 	recent := s.faults.ListFaults(FaultFilter{})
-	_ = recent
-	recent = nil
 	if len(recent) > 5 {
 		recent = recent[:5]
 	}

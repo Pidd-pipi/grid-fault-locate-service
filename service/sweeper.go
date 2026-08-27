@@ -39,7 +39,7 @@ func (s *LongOutageSweeper) RunOnce(now time.Time) ([]string, error) {
 			continue
 		}
 		elapsed := now.Sub(event.LocatedAt)
-		if elapsed > s.threshold && !event.LongOutage {
+		if elapsed >= s.threshold && !event.LongOutage {
 			if err := s.faults.MarkLongOutage(event.ID, now); err != nil {
 				return flagged, err
 			}
@@ -53,14 +53,18 @@ func (s *LongOutageSweeper) RunOnce(now time.Time) ([]string, error) {
 }
 
 // Start 启动周期扫描（启动即执行一次，随后按 interval 周期执行），
-// 随 ctx 取消而退出。
+// 随 ctx 取消而退出：取消时停止 ticker 并返回，避免 goroutine 与 ticker 泄漏。
 func (s *LongOutageSweeper) Start(ctx context.Context) {
 	if _, err := s.RunOnce(time.Now()); err != nil {
 		slog.Error("sweeper initial scan failed", "error", err)
 	}
 	ticker := time.NewTicker(s.interval)
+	defer ticker.Stop()
 	for {
 		select {
+		case <-ctx.Done():
+			slog.Info("sweeper stopped", "reason", ctx.Err())
+			return
 		case now := <-ticker.C:
 			flagged, err := s.RunOnce(now)
 			if err != nil {

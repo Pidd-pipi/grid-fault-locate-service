@@ -40,7 +40,7 @@ func NewOutageRecord(id string, event *FaultEvent, now time.Time) *OutageRecord 
 		OutageStart:     start,
 		OutageEnd:       end,
 		DurationMinutes: minutes,
-		LongOutage:      minutes > LongOutageThresholdMinutes,
+		LongOutage:      minutes >= LongOutageThresholdMinutes,
 		CreatedAt:       now,
 	}
 }

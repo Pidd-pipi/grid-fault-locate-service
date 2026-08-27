@@ -1,6 +1,8 @@
 package store
 
 import (
+	"sort"
+
 	"example.com/grid-fault-locate-service/domain"
 )
 
@@ -43,7 +45,7 @@ func (s *Store) GetSection(id string) (*domain.FeederSection, error) {
 	return sec, nil
 }
 
-// ListSections 列出区段，可选按线路过滤。
+// ListSections 列出区段，可选按线路过滤；结果按 ID 升序，保证确定性。
 func (s *Store) ListSections(feederID string) []*domain.FeederSection {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -53,6 +55,7 @@ func (s *Store) ListSections(feederID string) []*domain.FeederSection {
 			out = append(out, sec)
 		}
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 

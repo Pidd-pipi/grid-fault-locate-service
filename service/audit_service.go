@@ -23,8 +23,8 @@ func NewAuditService(st *store.Store) *AuditService {
 // requestID 由 HTTP 中间件注入，可为空（内部任务调用）。
 func (s *AuditService) Record(requestID string, action domain.AuditAction,
 	entityType, entityID, operator, detail string) error {
-	id := ""
-	entry := domain.NewAuditEntry(id, requestID, action, entityType, entityID, operator, detail, time.Now())
+	entry := domain.NewAuditEntry(s.store.NextID("AU"), requestID, action,
+		entityType, entityID, operator, detail, time.Now())
 	return s.store.AppendAudit(entry)
 }
 

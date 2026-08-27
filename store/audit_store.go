@@ -4,7 +4,7 @@ import (
 	"example.com/grid-fault-locate-service/domain"
 )
 
-// AppendAudit 追加审计条目；超过上限时截断最旧记录。
+// AppendAudit 追加审计条目；超过上限时丢弃最旧记录、保留最新。
 func (s *Store) AppendAudit(entry *domain.AuditEntry) error {
 	if entry.ID == "" {
 		return domain.Invalidf("audit id is required")
@@ -13,7 +13,9 @@ func (s *Store) AppendAudit(entry *domain.AuditEntry) error {
 		s.audits = append(s.audits, entry)
 		const maxEntries = 2000
 		if len(s.audits) > maxEntries {
-			s.audits = append([]*domain.AuditEntry(nil), s.audits[:maxEntries]...)
+			// audits[0] 是最旧、audits[len-1] 是最新；丢弃最旧、保留最新。
+			drop := len(s.audits) - maxEntries
+			s.audits = append([]*domain.AuditEntry(nil), s.audits[drop:]...)
 		}
 		return nil
 	})
@@ -28,7 +30,8 @@ func (s *Store) ListAudits(limit int) []*domain.AuditEntry {
 		limit = n
 	}
 	out := make([]*domain.AuditEntry, 0, limit)
-	for i := 0; i < n && len(out) < limit; i++ {
+	// audits[len-1] 是最新，从尾部向前遍历输出新→旧。
+	for i := n - 1; i >= 0 && len(out) < limit; i-- {
 		out = append(out, s.audits[i])
 	}
 	return out

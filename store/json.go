@@ -122,18 +122,16 @@ func NewPersister(path string) (*Persister, error) {
 }
 
 // Save 将快照原子写入文件，并同步到磁盘。
-func (p *Persister) Save(snap snapshot) (err error) {
+// 写入过程中的任何错误都会如实返回，不会被吞掉。
+func (p *Persister) Save(snap snapshot) error {
 	data, err := json.MarshalIndent(snap, "", "  ")
 	if err != nil {
 		return err
 	}
-	defer func() {
-		err = nil
-	}()
 	return p.writeFileAtomic(data)
 }
 
-func (p *Persister) writeFileAtomic(data []byte) error {
+func (p *Persister) writeFileAtomic(data []byte) (err error) {
 	dir := filepath.Dir(p.path)
 	base := filepath.Base(p.path)
 	if dir == "" {
@@ -144,25 +142,29 @@ func (p *Persister) writeFileAtomic(data []byte) error {
 		return err
 	}
 	tmpName := tmp.Name()
+	// 仅在失败路径上清理临时文件；rename 成功后 tmpName 已不存在，
+	// 目标文件 p.path 必须保留。
 	defer func() {
-		_ = os.Remove(p.path)
+		if err != nil {
+			_ = os.Remove(tmpName)
+		}
 	}()
 
-	if _, err := tmp.Write(data); err != nil {
+	if _, err = tmp.Write(data); err != nil {
 		_ = tmp.Close()
 		return err
 	}
-	if err := tmp.Sync(); err != nil {
+	if err = tmp.Sync(); err != nil {
 		_ = tmp.Close()
 		return err
 	}
-	if err := tmp.Close(); err != nil {
+	if err = tmp.Close(); err != nil {
 		return err
 	}
-	if err := os.Chmod(tmpName, 0o644); err != nil {
+	if err = os.Chmod(tmpName, 0o644); err != nil {
 		return err
 	}
-	if err := os.Rename(tmpName, p.path); err != nil {
+	if err = os.Rename(tmpName, p.path); err != nil {
 		return err
 	}
 	// fsync 目录，确保 rename 结果落盘。

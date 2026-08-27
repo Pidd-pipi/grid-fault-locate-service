@@ -1,6 +1,8 @@
 package store
 
 import (
+	"sort"
+
 	"example.com/grid-fault-locate-service/domain"
 )
 
@@ -44,6 +46,8 @@ func (s *Store) GetSwitch(id string) (*domain.SwitchNode, error) {
 }
 
 // ListSwitches 列出开关节点，可选按线路过滤。
+// 按 (Order, ID) 升序返回，消除 map 迭代随机性，保证出线开关在前、
+// 展示与下游顺序一致。
 func (s *Store) ListSwitches(feederID string) []*domain.SwitchNode {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -53,6 +57,12 @@ func (s *Store) ListSwitches(feederID string) []*domain.SwitchNode {
 			out = append(out, sw)
 		}
 	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Order != out[j].Order {
+			return out[i].Order < out[j].Order
+		}
+		return out[i].ID < out[j].ID
+	})
 	return out
 }
 

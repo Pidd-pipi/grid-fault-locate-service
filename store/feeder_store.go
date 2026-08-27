@@ -1,6 +1,8 @@
 package store
 
 import (
+	"sort"
+
 	"example.com/grid-fault-locate-service/domain"
 )
 
@@ -43,7 +45,7 @@ func (s *Store) GetFeeder(id string) (*domain.Feeder, error) {
 	return f, nil
 }
 
-// ListFeeders 列出全部线路。
+// ListFeeders 列出全部线路。按 ID 升序返回，消除 map 迭代随机性。
 func (s *Store) ListFeeders() []*domain.Feeder {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -51,6 +53,7 @@ func (s *Store) ListFeeders() []*domain.Feeder {
 	for _, f := range s.feeders {
 		out = append(out, f)
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 

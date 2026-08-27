@@ -1,6 +1,8 @@
 package store
 
 import (
+	"sort"
+
 	"example.com/grid-fault-locate-service/domain"
 )
 
@@ -43,7 +45,7 @@ func (s *Store) GetIndicator(id string) (*domain.FaultIndicator, error) {
 	return ind, nil
 }
 
-// ListIndicators 列出指示器，可按线路/区段过滤。
+// ListIndicators 列出指示器，可按线路/区段过滤。按 ID 升序返回，消除 map 迭代随机性。
 func (s *Store) ListIndicators(feederID, sectionID string) []*domain.FaultIndicator {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -57,6 +59,7 @@ func (s *Store) ListIndicators(feederID, sectionID string) []*domain.FaultIndica
 		}
 		out = append(out, ind)
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 

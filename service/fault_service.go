@@ -105,7 +105,7 @@ func (s *FaultService) StartRepair(id, operator, note, requestID string) (*domai
 
 // Isolate 隔离区段操作确认：
 //   - 事件必须处于 located/repairing；
-//   - 隔离区段必须属于事件线路；
+//   - 隔离区段必须属于事件线路（跨线路区段拒绝，避免误分他线开关）；
 //   - 联动：区段两端开关分闸、区段标记隔离，事件进入 repairing。
 func (s *FaultService) Isolate(id, operator, sectionID, note, requestID string) (*domain.FaultEvent, error) {
 	event, err := s.store.GetFault(id)
@@ -118,6 +118,9 @@ func (s *FaultService) Isolate(id, operator, sectionID, note, requestID string) 
 	sec, err := s.store.GetSection(sectionID)
 	if err != nil {
 		return nil, err
+	}
+	if sec.FeederID != event.FeederID {
+		return nil, domain.Conflictf("section %s does not belong to fault feeder %s", sectionID, event.FeederID)
 	}
 
 	if sec.Isolated {
@@ -225,16 +228,15 @@ func (s *FaultService) Restore(id, operator, note, requestID string) (*domain.Fa
 }
 
 // Archive 归档：restored → archived。
+// 必须经过复电闭环后才能归档；未复电（located/repairing）直接归档会被状态机拒绝。
 func (s *FaultService) Archive(id, operator, requestID string) (*domain.FaultEvent, error) {
 	event, err := s.store.GetFault(id)
 	if err != nil {
 		return nil, err
 	}
-	event.Status = domain.FaultArchived
-	event.ArchivedAt = time.Now()
-	event.ArchivedBy = operator
-	event.Operator = operator
-	event.UpdatedAt = time.Now()
+	if err := event.ApplyArchive(operator, time.Now()); err != nil {
+		return nil, err
+	}
 	if err := s.store.UpdateFault(event); err != nil {
 		return nil, err
 	}

@@ -48,6 +48,12 @@ func Statef(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrStateTransition, fmt.Sprintf(format, args...))
 }
 
+// NotIsolatedf 构造一个携带具体原因的「复电前未完成隔离确认」错误。
+// 与通用状态迁移错误区分：复电缺隔离属于可前置拦截的业务前置条件，HTTP 语义为 409 冲突。
+func NotIsolatedf(format string, args ...any) error {
+	return fmt.Errorf("%w: %s", ErrNotIsolated, fmt.Sprintf(format, args...))
+}
+
 // NotFoundf 构造一个携带具体原因的未找到错误。
 func NotFoundf(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrNotFound, fmt.Sprintf(format, args...))

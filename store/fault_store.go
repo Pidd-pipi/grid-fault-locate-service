@@ -1,6 +1,8 @@
 package store
 
 import (
+	"sort"
+
 	"example.com/grid-fault-locate-service/domain"
 )
 
@@ -43,7 +45,7 @@ func (s *Store) GetFault(id string) (*domain.FaultEvent, error) {
 	return f, nil
 }
 
-// ListFaults 列出故障事件，可选按状态/线路过滤。
+// ListFaults 列出故障事件，可选按状态/线路过滤。按 ID 升序返回，消除 map 迭代随机性。
 func (s *Store) ListFaults(status domain.FaultStatus, feederID string) []*domain.FaultEvent {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -57,6 +59,7 @@ func (s *Store) ListFaults(status domain.FaultStatus, feederID string) []*domain
 		}
 		out = append(out, f)
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 
@@ -71,7 +74,7 @@ func (s *Store) DeleteFault(id string) error {
 	})
 }
 
-// ListActiveFaults 列出仍在处置中（located/repairing）的故障事件。
+// ListActiveFaults 列出仍在处置中（located/repairing）的故障事件。按 ID 升序返回。
 func (s *Store) ListActiveFaults() []*domain.FaultEvent {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -81,5 +84,6 @@ func (s *Store) ListActiveFaults() []*domain.FaultEvent {
 			out = append(out, f)
 		}
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }

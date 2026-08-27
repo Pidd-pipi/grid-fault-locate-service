@@ -1,6 +1,8 @@
 package store
 
 import (
+	"sort"
+
 	"example.com/grid-fault-locate-service/domain"
 )
 
@@ -29,7 +31,7 @@ func (s *Store) GetOutage(id string) (*domain.OutageRecord, error) {
 	return o, nil
 }
 
-// ListOutages 列出停电记录，可选按线路过滤。
+// ListOutages 列出停电记录，可选按线路过滤。按 ID 升序返回，消除 map 迭代随机性。
 func (s *Store) ListOutages(feederID string) []*domain.OutageRecord {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -40,6 +42,7 @@ func (s *Store) ListOutages(feederID string) []*domain.OutageRecord {
 		}
 		out = append(out, o)
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
 

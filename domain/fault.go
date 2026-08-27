@@ -59,16 +59,15 @@ type FaultTransition struct {
 // located --repair--> repairing
 // located --isolate--> repairing
 // repairing --isolate--> repairing（重复隔离）
-// repairing --restore--> restored（前置：必须已隔离）
+// repairing --restore--> restored（前置：必须已隔离确认）
 // restored --archive--> archived
+// 严禁跳过复电直接归档：located/repairing 不得 archive，保证 located→repairing→restored→archived 闭环。
 var FaultTransitions = []FaultTransition{
 	{Action: ActionRepair, From: FaultLocated, To: FaultRepairing},
 	{Action: ActionIsolate, From: FaultLocated, To: FaultRepairing},
 	{Action: ActionIsolate, From: FaultRepairing, To: FaultRepairing},
-	{Action: ActionRestore, From: FaultRepairing, To: FaultRestored, RequiresIsolation: false},
+	{Action: ActionRestore, From: FaultRepairing, To: FaultRestored, RequiresIsolation: true},
 	{Action: ActionArchive, From: FaultRestored, To: FaultArchived},
-	{Action: ActionArchive, From: FaultLocated, To: FaultArchived},
-	{Action: ActionArchive, From: FaultRepairing, To: FaultArchived},
 }
 
 // CanTransition 判断从当前状态执行某动作是否合法。
@@ -153,15 +152,30 @@ func (e *FaultEvent) OutageDurationMinutes() int {
 }
 
 // ValidateAction 校验对当前状态执行某动作是否合法，返回目标状态。
+// 对于要求隔离前置的动作（复电），无论当前状态如何，未完成隔离即返回 ErrNotIsolated，
+// 以便上层（HTTP）用 40903 精确反馈「缺隔离确认」而非笼统的状态迁移错误。
 func (e *FaultEvent) ValidateAction(action FaultAction) (FaultStatus, error) {
+	if actionRequiresIsolation(action) && !e.Isolated() {
+		return "", NotIsolatedf("fault %s requires isolation confirmation before %q", e.ID, action)
+	}
 	t, ok := e.Status.Transition(action)
 	if !ok {
 		return "", Statef("fault %s cannot apply action %q from status %q", e.ID, action, e.Status)
 	}
 	if t.RequiresIsolation && !e.Isolated() {
-		return "", Statef("fault %s requires isolation confirmation before %q", e.ID, action)
+		return "", NotIsolatedf("fault %s requires isolation confirmation before %q", e.ID, action)
 	}
 	return t.To, nil
+}
+
+// actionRequiresIsolation 判断某动作在任何合法迁移上是否要求隔离前置（如复电）。
+func actionRequiresIsolation(action FaultAction) bool {
+	for _, t := range FaultTransitions {
+		if t.Action == action && t.RequiresIsolation {
+			return true
+		}
+	}
+	return false
 }
 
 // ApplyRepair 开始抢修：located → repairing。

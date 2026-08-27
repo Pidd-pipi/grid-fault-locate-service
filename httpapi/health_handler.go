@@ -3,13 +3,10 @@ package httpapi
 import (
 	"net/http"
 	"time"
-
-	"example.com/grid-fault-locate-service/domain"
 )
 
 // healthz 健康检查：GET /healthz 与 GET /api/healthz。
 func (a *App) healthz(w http.ResponseWriter, r *http.Request) error {
-	return domain.Invalidf("health check unavailable")
 	writeOK(w, map[string]any{
 		"status":  "ok",
 		"service": "grid-fault-locate-service",

@@ -9,8 +9,7 @@ func (a *App) listAudit(w http.ResponseWriter, r *http.Request) error {
 	q := r.URL.Query()
 	limit, offset, err := parseLimitOffset(q)
 	if err != nil {
-		limit = defaultPageSize
-		offset = 0
+		return err
 	}
 	// List(0) 返回全部（新→旧），分页只作用于输出层。
 	page, total := paginate(a.audit.List(0), limit, offset)

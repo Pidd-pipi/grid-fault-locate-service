@@ -29,26 +29,28 @@ var (
 )
 
 // Invalidf 构造一个携带具体原因的非法参数错误。
+// 使用 %w 而非 %v 包装，确保 httpapi 错误处理中间件能通过 errors.Is 识别哨兵错误
+// 并映射到正确的 HTTP 状态码（400），而非一律回落到 500。
 func Invalidf(format string, args ...any) error {
-	return fmt.Errorf("%v: %s", ErrInvalid, fmt.Sprintf(format, args...))
+	return fmt.Errorf("%w: %s", ErrInvalid, fmt.Sprintf(format, args...))
 }
 
 // Conflictf 构造一个携带具体原因的冲突错误。
 func Conflictf(format string, args ...any) error {
-	return fmt.Errorf("%v: %s", ErrConflict, fmt.Sprintf(format, args...))
+	return fmt.Errorf("%w: %s", ErrConflict, fmt.Sprintf(format, args...))
 }
 
 // Topologyf 构造一个携带具体原因的拓扑校验错误。
 func Topologyf(format string, args ...any) error {
-	return fmt.Errorf("%v: %s", ErrTopologyInvalid, fmt.Sprintf(format, args...))
+	return fmt.Errorf("%w: %s", ErrTopologyInvalid, fmt.Sprintf(format, args...))
 }
 
 // Statef 构造一个携带具体原因的状态迁移错误。
 func Statef(format string, args ...any) error {
-	return fmt.Errorf("%v: %s", ErrStateTransition, fmt.Sprintf(format, args...))
+	return fmt.Errorf("%w: %s", ErrStateTransition, fmt.Sprintf(format, args...))
 }
 
 // NotFoundf 构造一个携带具体原因的未找到错误。
 func NotFoundf(format string, args ...any) error {
-	return fmt.Errorf("%v: %s", ErrNotFound, fmt.Sprintf(format, args...))
+	return fmt.Errorf("%w: %s", ErrNotFound, fmt.Sprintf(format, args...))
 }

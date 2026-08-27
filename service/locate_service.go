@@ -120,9 +120,9 @@ func (s *LocateService) Locate(in LocateInput) (*LocateResult, error) {
 	}
 	if len(allTriggered) == 0 {
 		if len(result.Suspicious) > 0 {
-			return nil, fmt.Errorf("only suspicious signals")
+			return nil, fmt.Errorf("%w: only suspicious signals remain, manual verification required", domain.ErrSuspiciousOnly)
 		}
-		return nil, fmt.Errorf("no fault signal available")
+		return nil, fmt.Errorf("%w: no triggered fault signal available", domain.ErrNoFaultSignal)
 	}
 	result.Triggered = allTriggered
 

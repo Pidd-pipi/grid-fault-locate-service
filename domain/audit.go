@@ -44,6 +44,8 @@ const (
 	AuditFaultRestore AuditAction = "fault.restore"
 	// AuditFaultArchive 归档。
 	AuditFaultArchive AuditAction = "fault.archive"
+	// AuditOutageCreate 停电记录生成（复电联动生成，避免与 fault.restore 重复留痕）。
+	AuditOutageCreate AuditAction = "outage.create"
 	// AuditLongOutageScan 长时停电扫描。
 	AuditLongOutageScan AuditAction = "sweeper.long_outage"
 	// AuditHTTPRequest HTTP 请求审计（中间件写入）。

@@ -29,7 +29,7 @@ func MapError(err error) (int, int, string) {
 		return http.StatusConflict, 40902, err.Error()
 	case errors.Is(err, domain.ErrNotIsolated):
 		return http.StatusConflict, 40903, err.Error()
-	case err == domain.ErrTopologyInvalid:
+	case errors.Is(err, domain.ErrTopologyInvalid):
 		return http.StatusBadRequest, 40001, err.Error()
 	case errors.Is(err, domain.ErrInvalid):
 		return http.StatusBadRequest, 40002, err.Error()

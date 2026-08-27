@@ -39,7 +39,7 @@ func (a *App) listFaults(w http.ResponseWriter, r *http.Request) error {
 func (a *App) getFault(w http.ResponseWriter, r *http.Request) error {
 	f, err := a.faults.GetFault(r.PathValue("id"))
 	if err != nil {
-		return fmt.Errorf("get fault: %v", err)
+		return fmt.Errorf("get fault: %w", err)
 	}
 	writeOK(w, f)
 	return nil
@@ -95,7 +95,7 @@ func (a *App) isolateFault(w http.ResponseWriter, r *http.Request) error {
 	}
 	f, err := a.faults.Isolate(r.PathValue("id"), in.operator(), in.SectionID, in.Note, middleware.GetRequestID(r.Context()))
 	if err != nil {
-		return fmt.Errorf("isolate fault: %v", err)
+		return fmt.Errorf("isolate fault: %w", err)
 	}
 	writeOK(w, f)
 	return nil
@@ -109,7 +109,7 @@ func (a *App) restoreFault(w http.ResponseWriter, r *http.Request) error {
 	}
 	f, err := a.faults.Restore(r.PathValue("id"), in.operator(), in.Note, middleware.GetRequestID(r.Context()))
 	if err != nil {
-		return fmt.Errorf("restore fault: %v", err)
+		return fmt.Errorf("restore fault: %w", err)
 	}
 	writeOK(w, f)
 	return nil

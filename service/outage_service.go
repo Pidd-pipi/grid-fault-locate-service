@@ -30,7 +30,9 @@ func (s *OutageService) CreateFromRestore(event *domain.FaultEvent) (*domain.Out
 	if err := s.store.CreateOutage(rec); err != nil {
 		return nil, err
 	}
-	_ = s.audit.Record("", domain.AuditFaultRestore, "outage", rec.ID, event.RestoredBy,
+	// 复电联动生成停电记录单独留痕；不复用 fault.restore 动作，避免与
+	// FaultService.Restore 的审计条目重复（同一请求刷两遍）。
+	_ = s.audit.Record("", domain.AuditOutageCreate, "outage", rec.ID, event.RestoredBy,
 		"create outage record, duration "+strconv.Itoa(rec.DurationMinutes)+" minutes")
 	return rec, nil
 }

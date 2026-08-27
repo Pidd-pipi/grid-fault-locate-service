@@ -39,7 +39,7 @@ func (a *App) createIndicator(w http.ResponseWriter, r *http.Request) error {
 	}
 	ind, err := a.signals.CreateIndicator(in, operatorOf(r), middleware.GetRequestID(r.Context()))
 	if err != nil {
-		return fmt.Errorf("create indicator: %v", err)
+		return fmt.Errorf("create indicator: %w", err)
 	}
 	writeCreated(w, ind)
 	return nil

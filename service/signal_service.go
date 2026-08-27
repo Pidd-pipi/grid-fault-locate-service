@@ -55,7 +55,7 @@ func (s *SignalService) CreateIndicator(in IndicatorInput, operator, requestID s
 func (s *SignalService) UpdateIndicator(id string, name string, position float64, operator, requestID string) (*domain.FaultIndicator, error) {
 	ind, err := s.store.GetIndicator(id)
 	if err != nil {
-		return nil, fmt.Errorf("update indicator get: %v", err)
+		return nil, fmt.Errorf("update indicator get: %w", err)
 	}
 	if name != "" {
 		ind.Name = name
@@ -68,7 +68,7 @@ func (s *SignalService) UpdateIndicator(id string, name string, position float64
 		return nil, err
 	}
 	if err := s.store.UpdateIndicator(ind); err != nil {
-		return nil, fmt.Errorf("update indicator save: %v", err)
+		return nil, fmt.Errorf("update indicator save: %w", err)
 	}
 	_ = s.audit.Record(requestID, domain.AuditIndicatorUpdate, "indicator", ind.ID, operator, "update indicator "+ind.Name)
 	return ind, nil
@@ -78,10 +78,10 @@ func (s *SignalService) UpdateIndicator(id string, name string, position float64
 func (s *SignalService) DeleteIndicator(id, operator, requestID string) error {
 	ind, err := s.store.GetIndicator(id)
 	if err != nil {
-		return fmt.Errorf("delete indicator get: %v", err)
+		return fmt.Errorf("delete indicator get: %w", err)
 	}
 	if err := s.store.DeleteIndicator(id); err != nil {
-		return fmt.Errorf("delete indicator: %v", err)
+		return fmt.Errorf("delete indicator: %w", err)
 	}
 	_ = s.audit.Record(requestID, domain.AuditIndicatorDelete, "indicator", id, operator, "delete indicator "+ind.Name)
 	return nil
@@ -95,7 +95,7 @@ func (s *SignalService) ReportSignal(indicatorID string, status domain.Indicator
 	}
 	ind, err := s.store.GetIndicator(indicatorID)
 	if err != nil {
-		return nil, fmt.Errorf("report signal: %v", err)
+		return nil, fmt.Errorf("report signal: %w", err)
 	}
 	if at.IsZero() {
 		at = time.Now()

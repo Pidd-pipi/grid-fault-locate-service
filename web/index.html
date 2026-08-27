@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配电网故障定位与复电服务</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">⚡</span>
+      <div>
+        <h1>配电网故障定位与复电服务</h1>
+        <p class="brand-sub">Grid Fault Locate &amp; Restore Service</p>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#/" data-route="overview">配网总览</a>
+      <a href="#/topology" data-route="topology">拓扑管理</a>
+      <a href="#/indicators" data-route="indicators">指示器</a>
+      <a href="#/faults" data-route="faults">故障事件</a>
+      <a href="#/outages" data-route="outages">停电统计</a>
+    </nav>
+  </header>
+
+  <main id="app" class="container">
+    <div class="loading">加载中…</div>
+  </main>
+
+  <footer class="footer">
+    <span>grid-fault-locate-service · 干净基线 · 离线可运行</span>
+    <span id="reqId"></span>
+  </footer>
+
+  <div id="modal-root"></div>
+
+  <!-- 枚举与常量（与后端 domain 保持一致） -->
+  <script src="/enums.js"></script>
+  <!-- API 工具 -->
+  <script src="/hooks/api.js"></script>
+  <!-- 自定义 hooks -->
+  <script src="/hooks/useFeeders.js"></script>
+  <script src="/hooks/useFaults.js"></script>
+  <script src="/hooks/useTopology.js"></script>
+  <!-- 共享组件 -->
+  <script src="/components/TopologyGraph.js"></script>
+  <script src="/components/FaultCard.js"></script>
+  <script src="/components/IndicatorTable.js"></script>
+  <!-- 页面与应用入口 -->
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "mode": "service",
+  "start": "go run .",
+  "env": {
+    "PORT": "18080",
+    "DATA_FILE": "/tmp/grid-smoke-data.json"
+  },
+  "ready_url": "http://127.0.0.1:18080/healthz",
+  "project_intro": "基于 Go 实现的配电网故障定位与复电服务 Web 项目，一款后端服务（go:embed 内嵌原生前端），完成配网拓扑管理、故障指示器信号采集、故障区段定位、复电流程跟踪与停电统计。"
+}

@@ -12,13 +12,12 @@ func (a *App) listOutages(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	page, total := paginate(a.outages.ListOutages(q.Get("feederId")), limit, offset)
-	page = append(page, nil)
 	writeOKPage(w, page, total)
 	return nil
 }
 
 // outageSummary GET /api/outages/summary：停电统计汇总。
 func (a *App) outageSummary(w http.ResponseWriter, r *http.Request) error {
-	writeOK(w, nil)
+	writeOK(w, a.outages.Summary())
 	return nil
 }

@@ -56,13 +56,18 @@ func parseOptionalBool(q url.Values, key string) (bool, error) {
 	}
 }
 
-// paginate 对已排序的全量列表做 limit/offset 切片，返回当前页与总数。
+// paginate 对已排序的全量列表做 limit/offset 分页，返回当前页与总数。
+// 越界的 offset（含空列表）返回长度为 0 的独立空切片，绝不与入参共享底层数组，
+// 避免调用方 append 等改动回写到源切片造成数据串扰。
 func paginate[T any](items []T, limit, offset int) ([]T, int) {
 	total := len(items)
-	if offset >= total {
-		return items[:0], total
+	if offset >= total || limit <= 0 {
+		return make([]T, 0), total
 	}
 	end := offset + limit
+	if end > total {
+		end = total
+	}
 	out := make([]T, end-offset)
 	copy(out, items[offset:end])
 	return out, total
